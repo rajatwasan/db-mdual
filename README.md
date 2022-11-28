@@ -8,11 +8,11 @@ This code was written on CPP with GCC Compiler verion 8.3.0 on windows platform.
 
 To detect outliers in Code Run Outliers.cpp 
 
-    cpp test/Outlier.cpp
+    gcc test/Outlier.cpp
 
 To check CPU and Memory used run Load.cpp with these commands:
 
-    cpp test/Load.cpp
+    gcc test/Load.cpp
 
 ## Datasets
 Code includes the three datasets and respective querysets in the codebase. To test these datasets or querysets, change the name in Outliers.cpp or Load.cpp file and compile and run. 

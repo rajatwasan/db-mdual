@@ -4,7 +4,7 @@ using namespace std;
 #include "..//MDUAL/Utils.cpp"
 /**
  * MDUAL is the implementaion of main algorithms
-*/
+ */
 class MDUAL
 {
 public:
@@ -45,19 +45,19 @@ public:
         {
             this->updateBasisParams(itr);
             this->initCellSize();
-            cout << outliers.size() << endl;
+            // cout << outliers.size() << endl;
         }
         this->clearPreviousOutliers();
-        cout << outliers.size() << endl;
+        // cout << outliers.size() << endl;
 
         this->updateWindow(newSlideTuples, itr);
-        cout << outliers.size() << endl;
+        // cout << outliers.size() << endl;
 
         this->updateBasisParams(itr);
-        cout << outliers.size() << endl;
+        // cout << outliers.size() << endl;
 
         this->findOutlierMain(itr);
-        cout << outliers.size() << endl;
+        // cout << outliers.size() << endl;
 
         return this->outliers;
     }
@@ -118,7 +118,8 @@ public:
         if (itr > 0 and max_R != maxR_old)
             max_RChanged = true;
     }
-
+    // Algorithm 1. Net change update
+    // Update window size and net change
     void updateWindow(vector<Tuple> slideTuples, int itr)
     {
         map<vector<int>, int> fullDimCellSlideInCnt;
@@ -196,7 +197,7 @@ public:
             fullDimCellSlidesCnt.push_back(fullDimCellSlideInCnt);
 
         set<vector<int>> newCellIdices;
-        // update slideIn
+        // update slideInWindow
         for (auto i : slideIn)
         {
             int card = i.second.getNumTuples();
@@ -211,7 +212,7 @@ public:
             slideDeltaCnt[i.first] = card;
         }
 
-        // update full Dim cell window count - slideIn
+        // Update full Dim cell window count - slideIn
 
         if (sub_Dim_Flag)
         {
@@ -226,7 +227,7 @@ public:
                 fullDimCardGrid[i.first].mp_cardPerSlide[itr] = card;
             }
         }
-
+        // SlideOut:
         getNeighCellMap(newCellIdices);
 
         if (itr > (nS - 1))
@@ -298,6 +299,7 @@ public:
                 validQueryIDs.push_back(q.second);
         }
         // TD:Sort
+        // validQueryIDs.sort()
         // Algorithm 2: Group-wise coarse processing
         // Check boolean range for inlier and outlier cells
         for (auto cellIdx : cardGrid)
@@ -488,7 +490,8 @@ public:
                             {
                                 for (Tuple tother : slide[cellID.first].set_tuples)
                                 {
-                                    if(sub_dim_Flag){
+                                    if (sub_dim_Flag)
+                                    {
                                         continue;
                                     }
                                     if (sub_Dim_Flag and tcand.vect_fullDim_CellIdx == tother.vect_fullDim_CellIdx)
