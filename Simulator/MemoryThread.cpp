@@ -1,9 +1,9 @@
 #pragma once
-// namespace windows
-// {
-// // #include <windows.h>
-// }
-// using namespace windows;
+namespace windows
+{
+#include <windows.h>
+}
+using namespace windows;
 #include <bits/stdc++.h>
 #include <unistd.h>
 #include "Thread.cpp"
