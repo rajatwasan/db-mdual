@@ -27,6 +27,7 @@ Example Output:
 Code includes the three datasets and respective querysets in the codebase. To test these datasets or querysets, change the name in Outliers.cpp or Load.cpp file and compile and run. 
 
 |Dataset|Dimensions|Data Points|
+|-------|----------|-----------|
 | STK   |   1      |    1.05M  |
 | TAO   |   3      |    0.58M  |
 | FC    |   55     |    1M     |
