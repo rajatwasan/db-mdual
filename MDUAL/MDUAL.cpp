@@ -2,9 +2,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 #include "..//MDUAL/Utils.cpp"
+#include "..//MDUAL/Naive.cpp"
 /**
  * MDUAL is the implementaion of main algorithms
-*/
+ */
 class MDUAL
 {
 public:
@@ -20,10 +21,12 @@ public:
     list<map<vector<int>, Cell>> slides;
     list<map<vector<int>, int>> fullDimCellSlidesCnt;
     set<Tuple> outliers;
+    map<int, set<int>> final_outliers;
+    set<Tuple> outlier_;
     map<int, Query> querySet;
 
     bool sub_dim_Flag;
-
+    // NAIVE *naive;
     MDUAL(int dim, int subDim, int nS, int gcdS, vector<double> minValues)
     {
         this->dim = dim;
@@ -31,52 +34,40 @@ public:
         // cout << "subdim " << this->subdim << endl;
         this->sub_Dim_Flag = dim != subdim;
         this->min_R = std::numeric_limits<double>::max();
-        this->max_R = std::numeric_limits<double>::lowest();
+        this->max_R = std::numeric_limits<double>::min();
         this->gcdS = gcdS;
         this->nS = nS;
         this->minValues = minValues;
         this->sub_dim_Flag = true;
+        // naive = new NAIVE(nS, gcdS);
     }
     set<Tuple> findOutlier(vector<Tuple> newSlideTuples, map<int, Query> newQuerySet, int itr)
     {
         this->querySet = newQuerySet;
-        // cout << itr;
         if (itr == 0)
         {
             this->updateBasisParams(itr);
             this->initCellSize();
-            cout << outliers.size() << endl;
         }
         this->clearPreviousOutliers();
-        cout << outliers.size() << endl;
-
+        this->outlier_ = naive->findOutlier(newSlideTuples, newQuerySet, itr);
         this->updateWindow(newSlideTuples, itr);
-        cout << outliers.size() << endl;
-
         this->updateBasisParams(itr);
-        cout << outliers.size() << endl;
-
         this->findOutlierMain(itr);
-        cout << outliers.size() << endl;
-
+        // cout << outliers.size() << endl;
         return this->outliers;
     }
     void initCellSize()
     {
         dimLength.clear();
         dimLength.resize(dim);
-        // cout << dim;
-        // dimLength = new double[dim];
         for (int i = 0; i < dim; i++)
         {
             // cout << dim;
             dimLength[i] = sqrt(min_R * min_R / dim);
         }
-        // cout << subdim << endl;
-        // cout << sub_Dim_Flag << endl;
         if (sub_Dim_Flag)
         {
-            // subDimLength = new double[subdim];
             subDimLength.clear();
             subDimLength.resize(subdim);
             for (int i = 0; i < subdim; i++)
@@ -105,7 +96,7 @@ public:
         minR_old = min_R;
         maxR_old = max_R;
         min_R = std::numeric_limits<double>::max();
-        max_R = std::numeric_limits<double>::lowest();
+        max_R = std::numeric_limits<double>::min();
         for (auto i : querySet)
         {
             if (max_R < i.second.R)
@@ -175,7 +166,6 @@ public:
                 // vector<double> temp;
                 // for (size_t i = 0; i < dim; i++)
                 // {
-                //     /* code */
                 //     temp.push_back(dimLength[i]);
                 // }
                 slideIn[subDimCellIdx].addTupleSubDim(tuple, dimLength, minValues);
@@ -192,6 +182,7 @@ public:
         }
 
         slides.push_back(slideIn);
+        // cout << slides.size() << "Slides";
         if (sub_Dim_Flag)
             fullDimCellSlidesCnt.push_back(fullDimCellSlideInCnt);
 
@@ -279,6 +270,7 @@ public:
                 }
             }
         }
+        // cout << fullDimCellSlideInCnt.size() << " fullDimCellSlideInCnt" << endl;
     }
 
     void findOutlierMain(int itr)
@@ -292,12 +284,34 @@ public:
             this->reComputeNeighCellMap();
 
         list<Query> validQueryIDs;
+        vector<Query> arr;
+
         for (auto q : querySet)
         {
             if ((itr + 1) % (q.second.S / gcdS) == 0)
-                validQueryIDs.push_back(q.second);
+            {
+                // validQueryIDs.push_back(q.second);
+                arr.push_back(q.second);
+            }
         }
-        // TD:Sort
+        // Sort based on R, W and K
+        sort(arr.begin(), arr.end(), [&](Query q1, Query q2)
+             {
+            if(q1.R>q2.R) {
+					return 1;
+				}else if(q1.R==q2.R){
+					if(q1.W>q2.W) return 1;
+					else if(q1.W==q2.W){
+						if(q1.K<=q2.K) return 1;
+						else return -1;
+					}else return -1;
+				}else return -1; });
+        for (auto val : arr)
+        {
+            validQueryIDs.push_back(val);
+        }
+        // cout << validQueryIDs.size() << "validQueryIDs" << endl;
+
         // Algorithm 2: Group-wise coarse processing
         // Check boolean range for inlier and outlier cells
         for (auto cellIdx : cardGrid)
@@ -308,6 +322,7 @@ public:
             vector<int> inlierCellQueryIDs;
             vector<int> outlierCellQueryIDs;
             list<Query> ndQueries;
+            // cout << ndQueryCands.size() << "ndQueryCands" << endl;
             // check if ndQueryCands empty and then verify inliers/outliers
             while (!ndQueryCands.empty())
             {
@@ -319,39 +334,46 @@ public:
                     outlierCellQueryIDs.push_back(q.id);
                     continue;
                 }
-                int firstSlideID = itr - q.W / gcdS + 1;
-                int cardTotal = gCell.getCardTotal(firstSlideID);
+                int first_Slide_Id = itr - q.W / gcdS + 1;
+                int cardTotal = gCell.getCardTotal(first_Slide_Id);
+                // cout << q.id << " : QID" << endl;
+                cout << cardTotal << " : CardTotal" << endl;
 
                 if (!sub_Dim_Flag and cardTotal > q.K)
                 {
                     inlierCellQueryIDs.push_back(q.id);
-                    list<Query>::iterator itr = ndQueryCands.begin();
-                    while (itr != ndQueryCands.end())
+                    list<Query>::iterator queryIterator = ndQueryCands.begin();
+                    while (queryIterator != ndQueryCands.end())
                     {
-                        Query q2 = *itr;
+                        Query q2 = *queryIterator;
                         if (q2.W >= q.W and q2.R >= q.R and q2.K <= q.K)
                         {
-                            ndQueryCands.erase(itr);
+                            ndQueryCands.erase(queryIterator++);
                         }
+                        queryIterator++;
                     }
                 }
                 else
                 {
+                    // cout << "else" << endl;
                     int thredNeighCellCardTotal = 0;
                     for (auto neighCellIdx : gCell.getThredNeighCellsIn(q.R - min_R))
                     {
-                        thredNeighCellCardTotal += cardGrid[neighCellIdx].getCardTotal(firstSlideID);
+                        thredNeighCellCardTotal += cardGrid[neighCellIdx].getCardTotal(first_Slide_Id);
+                        // cout << "for neigh" << endl;
                         if (!sub_Dim_Flag and (thredNeighCellCardTotal + cardTotal) > q.K)
                         {
+                            // cout << "for neigh if" << endl;
                             inlierCellQueryIDs.push_back(q.id);
-                            list<Query>::iterator itr = ndQueryCands.begin();
-                            while (itr != ndQueryCands.end())
+                            list<Query>::iterator queryIterator = ndQueryCands.begin();
+                            while (queryIterator != ndQueryCands.end())
                             {
-                                Query q2 = *(itr);
+                                Query q2 = *queryIterator;
                                 if (q2.W >= q.W and q2.R >= q.R and q2.K <= q.K)
                                 {
-                                    ndQueries.erase(itr);
+                                    ndQueries.erase(queryIterator);
                                 }
+                                queryIterator++;
                             }
                         }
                         else
@@ -360,20 +382,24 @@ public:
                             // if its not in sub dim, then add the cell card
                             int neighCellCardTotal = (sub_Dim_Flag ? 0 : cardTotal);
                             for (auto neighCellIdx : gCell.getThredNeighCellsOut(q.R + min_R))
-                                neighCellCardTotal += cardGrid[neighCellIdx].getCardTotal(firstSlideID);
-
+                                neighCellCardTotal += cardGrid[neighCellIdx].getCardTotal(first_Slide_Id);
+                            // cout << "for else" << endl;
                             if (neighCellCardTotal <= q.K)
                             {
+                                // cout << "<q.k>" << endl;
                                 outlierCellQueryIDs.push_back(q.id);
                                 list<Query>::iterator itrQuery = ndQueryCands.begin();
                                 while (itrQuery != ndQueryCands.end())
                                 {
+                                    // cout << "while" << endl;
                                     Query q2 = *(itrQuery);
                                     if (q2.W <= q.W and q2.R <= q.R and q2.K >= q.K)
                                     {
+                                        // cout << "if" << endl;
                                         ndQueryCands.erase(itrQuery);
                                         outlierCellQueryIDs.push_back(q2.id);
                                     }
+                                    itrQuery++;
                                 }
                             }
                             else
@@ -384,20 +410,24 @@ public:
                     }
                 }
             }
+            // cout << outlierCellQueryIDs.size() << "CellQuery" << endl;
             for (auto qid : outlierCellQueryIDs)
             {
                 // Push outlier tuple using outlier cell query ids
-                int firstSlideID = itr - querySet[qid].W / gcdS + 1;
+                int first_Slide_Id = itr - querySet[qid].W / gcdS + 1;
                 int slideID = itr - slides.size();
                 for (auto slide : slides)
                 {
+                    // cout << "GWFP" << endl;
                     slideID++;
-                    if (slideID < firstSlideID or !(slide.find(cellIdx.first) != slide.end()))
+                    if (slideID < first_Slide_Id or !(slide.find(cellIdx.first) != slide.end()))
                         continue;
                     for (Tuple t : slide[cellIdx.first].set_tuples)
                     {
                         t.set_outlier_queryIds.insert(qid);
+                        // cout << "tcand" << t.id << endl;
                         outliers.insert(t);
+                        // fout_outlier.push_back(t);
                     }
                 }
             }
@@ -423,21 +453,26 @@ public:
             {
                 for (Query q : gcell.vect_ndQueries)
                 {
-                    if (q.K > ndQueriesMaxK)
+                    switch (expression)
+                    {
+                    case q.K > ndQueriesMaxK:
                         ndQueriesMaxK = q.K;
-                    if (q.R > ndQueriesMaxR)
+                    case (q.R > ndQueriesMaxR):
                         ndQueriesMaxR = q.R;
-                    if (q.W < ndQueriesMinWin)
+                    case (q.W < ndQueriesMinWin):
                         ndQueriesMinWin = q.W;
-                    if (q.W > ndQueriesMaxW)
+                    case (q.W > ndQueriesMaxW):
                         ndQueriesMaxW = q.W;
+                    default:
+                        break;
+                    }
                 }
             }
+            int slideID = itr - slides.size();
 
             set<Tuple> candOutlierTuple;
             int minWinfirstSlideID = itr - ndQueriesMinWin / gcdS + 1;
             int maxWinfirstSlideID = itr - ndQueriesMinWin / gcdS + 1;
-            int slideID = itr - slides.size();
             for (map<vector<int>, Cell> slide : slides)
             {
                 slideID++;
@@ -470,16 +505,16 @@ public:
                 {
                     Query q = ndQueryTuple.front();
                     ndQueryTuple.pop_front();
-                    int firstSlideID = itr - q.W / gcdS + 1;
-                    if (tcand.silde_ID < firstSlideID)
+                    int first_Slide_Id = itr - q.W / gcdS + 1;
+                    if (tcand.silde_ID < first_Slide_Id)
                         continue;
 
-                    int mn = (sub_Dim_Flag ? fullDimCardGrid[tcand.vect_fullDim_CellIdx].getCardTotal(firstSlideID) - 1 : gcell.getCardTotal(firstSlideID) - 1);
+                    int mn = (sub_Dim_Flag ? fullDimCardGrid[tcand.vect_fullDim_CellIdx].getCardTotal(first_Slide_Id) - 1 : gcell.getCardTotal(first_Slide_Id) - 1);
                     slideID = itr - slides.size();
                     for (map<vector<int>, Cell> slide : slides)
                     {
                         slideID++;
-                        if (slideID < firstSlideID)
+                        if (slideID < first_Slide_Id)
                             continue;
                         for (auto cellID : slide)
                         {
@@ -488,7 +523,8 @@ public:
                             {
                                 for (Tuple tother : slide[cellID.first].set_tuples)
                                 {
-                                    if(sub_dim_Flag){
+                                    if (sub_dim_Flag)
+                                    {
                                         continue;
                                     }
                                     if (sub_Dim_Flag and tcand.vect_fullDim_CellIdx == tother.vect_fullDim_CellIdx)
@@ -511,6 +547,7 @@ public:
                                                 {
                                                     ndQueriesMaxTuple = q2.R;
                                                 }
+                                                ndQueryTupleItr++;
                                             }
                                             continue;
                                         }
@@ -521,8 +558,9 @@ public:
                         if (mn < q.K)
                         {
                             tcand.set_outlier_queryIds.insert(q.id);
+                            // cout << "tcand" << tcand.id << endl;
                             outliers.insert(tcand);
-
+                            // fout_outlier.push_back(tcand);
                             list<Query>::iterator ndQueryItr = ndQueryTuple.begin();
                             ndQueriesMaxTuple = std::numeric_limits<double>::lowest();
                             while (ndQueryItr != ndQueryTuple.end())
@@ -537,12 +575,20 @@ public:
                                 {
                                     ndQueriesMaxTuple = q2.R;
                                 }
+                                ndQueryItr++;
                             }
                         }
                     }
                 }
             }
         }
+        // set<Tuple>::iterator tupleIterator = outlier_.begin();
+        // while (tupleIterator != outlier_.end())
+        // {
+        //     Query q2 = *tupleIterator;
+        //     outliers.insert(tupleIterator);
+        //     tupleIterator++;
+        // }
     }
 
     void getNeighCellMap(set<vector<int>> newCellIdices)
@@ -566,7 +612,6 @@ public:
             }
         }
     }
-
     void reComputeNeighCellMap()
     {
         utils u;
@@ -635,15 +680,21 @@ public:
                         cellCenter.resize(subdim);
                         if (sub_Dim_Flag)
                         {
-                            for (int j = 0; j < subdim; j++)
+                            int j = 0;
+                            while (j < subdim)
                             {
                                 cellCenter[j] = minValues[j] = subDimCellIdx[j] * subDimLength[j] + subDimLength[j] / 2;
+                                j++;
                             }
                         }
                         else
                         {
-                            for (int j = 0; j < dim; j++)
+                            int j = 0;
+                            while (j < dim)
+                            {
                                 cellCenter[j] = minValues[j] + fullDimCellIdx[j] * dimLength[j] + dimLength[j] / 2;
+                                j++;
+                            }
                         }
                         slideNew[subDimCellIdx] = *(new Cell(subDimCellIdx, cellCenter, sub_Dim_Flag));
                     }

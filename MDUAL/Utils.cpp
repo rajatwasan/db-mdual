@@ -14,7 +14,7 @@ public:
     int x = 0;
     while (x < t1.vect_value.size())
     {
-      ssum += pow(t1.vect_value[x] - t2.vect_value[x], 2);
+      ssum += pow((t1.vect_value[x] - t2.vect_value[x]), 2);
       x++;
     }
     return sqrt(ssum);
@@ -25,7 +25,7 @@ public:
     double ss_thred = pow(threshold, 2);
     for (int j = 0; j < t1.vect_value.size(); j++)
     {
-      ssum += pow(t1.vect_value[j] - t2.vect_value[j], 2);
+      ssum += pow((t1.vect_value[j] - t2.vect_value[j]), 2);
       if (ssum > ss_thred)
         return std::numeric_limits<double>::max();
     }
@@ -55,7 +55,7 @@ public:
     int i = 0;
     while (i < v2.size())
     {
-      ssum += pow(v1[i] - v2[i], 2);
+      ssum += pow((v1[i] - v2[i]), 2);
       if (ssum > threshold)
         return false;
       i++;

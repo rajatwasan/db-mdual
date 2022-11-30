@@ -117,7 +117,6 @@ public:
             // for (auto i : arr)
             //     cout << i << " ";
             // cout << endl;
-
             // cout << arr;
             int id = stoi(arr[0]);
 
@@ -132,6 +131,7 @@ public:
                 querySet[id] = query;
             }
         }
+        fin.close();
 
         return querySet;
     }

@@ -5,7 +5,7 @@ using namespace std;
 #include "../Loader/Query.cpp"
 /**
  * Global Cell data structure for block groups
-*/
+ */
 class globalCell
 {
 public:
@@ -36,6 +36,7 @@ public:
         int total = 0;
         for (auto i : mp_cardPerSlide)
         {
+            // cout << i.first << "i.first" << endl;
             if (i.first >= firstSlideID)
             {
                 total += i.second;

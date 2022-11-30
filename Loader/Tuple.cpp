@@ -34,7 +34,7 @@ public:
   // }
   bool operator<(const Tuple &rhs) const
   {
-    return rhs.id == this->id;
+    return rhs.id != this->id;
   }
 };
-//endif
+// endif

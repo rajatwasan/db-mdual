@@ -7,7 +7,7 @@ using namespace std;
 #include "../Loader/Tuple.cpp"
 /**
  * Outlier Detection: This file return the outliers detected by MDUAL algorithm
-*/
+ */
 int main(int argc, char const *argv[])
 {
     string dataset = "STK";
@@ -17,11 +17,8 @@ int main(int argc, char const *argv[])
     QueryLoader *qLoader = new QueryLoader(queryset);
     int nS = qLoader->maxW / qLoader->gcdS;
     int gcdS = qLoader->gcdS;
-    // cout << "Test1: " << dLoader->subdim << endl;
     MDUAL *mdual = new MDUAL(dLoader->dim, dLoader->subdim, nS, gcdS, dLoader->getMinValues());
-
-    for (int itr = 0; itr < (nW + nS - 1); itr++)
-    {
+    for (int itr = 0; itr < (nW + nS - 1); itr++){
         map<int, Query> newQuerySet = qLoader->getQuerySetByQID(itr * 5, 10);
         if (newQuerySet.empty())
             break;
@@ -29,9 +26,7 @@ int main(int argc, char const *argv[])
         if (newSlideTuples_NETSPlus.empty())
             break;
         set<Tuple> outliers_MDUAL = mdual->findOutlier(newSlideTuples_NETSPlus, newQuerySet, itr);
-        map<int, set<int>> outliers;
-        cout << "Total outliers: " << endl;
-        cout << outliers_MDUAL.size() << endl;
+        cout << "Iteration: " << itr << "-Total Outliers: " << outliers_MDUAL.size() << endl;
     }
     return 0;
 }
