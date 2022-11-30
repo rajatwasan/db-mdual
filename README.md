@@ -1,10 +1,15 @@
 # Implementation of Multiple Dynamic Outlier-Detection from a Data Stream by Exploiting Duality of Data and Queries
 
-## 1. Configuration
+## Introduction
+We have implemented the algorithm MDUAL to perform duality-based unified processing employing two techniques: data-query grouping and prioritized group processing. The main algorithm code can be find in this path: 
 
-This code was written on CPP with GCC Compiler verion 8.3.0 on windows platform. It is recommended to use windows for some library functions used in the code. Most of the code works on Linux and Mac platform as well.
+> db-mdual\MDUAL\MDUAL.cpp
 
-## 2. Implementation
+## Configuration
+
+This code was written on CPP with GCC Compiler verion 8.3.0 on windows platform. It is recommended to use windows for some library functions used in the code. Most of the outlier code works on Linux and Mac platform as well.
+
+## Implementation
 
 To detect outliers in Code Run Outliers.cpp 
 
@@ -18,7 +23,7 @@ To check CPU and Memory used run Load.cpp with these commands:
 
     cpp test/Load.cpp
 
-Load will run and return the CPU time and average memory used by algorithm along with changed Q ratio and dataset info.
+Load will run and return the CPU time and average memory used by algorithm along with changed Q ratio and dataset info. Memory and CPU functions use windows specific library.
 
 Example Output:
 ![Output 2](output/Fig2.png?raw=true "Outlier")
